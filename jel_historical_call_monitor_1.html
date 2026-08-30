@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JEL Historical Call Monitor — Aug 2–29, 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#006271;--teal-lt:#e4eff0;--gold:#e2bc5c;--gold-lt:#fdf6e3;--dark:#00272d;--red:#c0392b;--red-lt:#fee2e2;--amber:#f59e0b;--amber-lt:#fef3c7;--green:#16a34a;--green-lt:#dcfce7;--purple:#6d28d9;--purple-lt:#ede9fe;--border:#e4e8ec;--bg:#f4f6f8;--white:#fff;--text:#1a2a2d;--muted:#6b7f86;--font:'Montserrat',sans-serif}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--dark);padding:22px 32px;display:flex;align-items:center;gap:16px}
+.header-title{font-size:18px;font-weight:800;color:#fff;letter-spacing:.06em;text-transform:uppercase}
+.header-sub{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+.status-pill{margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:rgba(226,188,92,.16);border:1px solid rgba(226,188,92,.4);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--gold)}
+.alert{background:var(--red-lt);border-bottom:2px solid #fca5a5;padding:9px 32px;font-size:12px;font-weight:600;color:var(--red);display:flex;align-items:center;gap:8px}
+.page{padding:22px 32px 48px;max-width:1100px;margin:0 auto}
+.summary-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:22px}
+.sc{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:13px 16px;border-top:3px solid var(--gold)}
+.sc.purple{border-top-color:var(--purple)}
+.sc-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px}
+.sc-value{font-size:26px;font-weight:800;line-height:1}
+.sc-value.red{color:var(--red)}.sc-value.teal{color:var(--teal)}.sc-value.green{color:var(--green)}.sc-value.purple{color:var(--purple)}
+.sc-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:500}
+.week-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:22px}
+.week-tab{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:.12s;text-align:left}
+.week-tab:hover{border-color:var(--teal);box-shadow:0 2px 8px rgba(0,39,45,.1)}
+.week-tab.active{background:var(--dark);border-color:var(--dark)}
+.wt-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.week-tab.active .wt-label{color:rgba(255,255,255,.55)}
+.wt-dates{font-size:13px;font-weight:800;color:var(--text);line-height:1.2}
+.week-tab.active .wt-dates{color:#fff}
+.wt-stats{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.wt-chip{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px}
+.chip-red{background:var(--red-lt);color:#991b1b}.chip-amber{background:var(--amber-lt);color:#92400e}.chip-green{background:var(--green-lt);color:#166534}.chip-teal{background:var(--teal-lt);color:var(--teal)}.chip-purple{background:var(--purple-lt);color:var(--purple)}
+.trend-panel{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:22px}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border);background:#fafbfc}
+.panel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;align-items:center;gap:7px}
+.panel-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.panel-meta{font-size:10px;font-weight:600;color:var(--muted)}
+.panel-body{padding:16px}
+.trend-wrap{position:relative;height:180px}
+.section-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 10px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.day-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:22px}
+.day-btn{background:var(--white);border:1.5px solid var(--border);border-radius:8px;padding:8px 4px;cursor:pointer;text-align:center;transition:.12s}
+.day-btn:hover{border-color:var(--teal);box-shadow:0 2px 8px rgba(0,39,45,.1)}
+.day-btn.active{background:var(--teal);border-color:var(--teal)}
+.day-btn.empty{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
+.db-date{font-size:10px;font-weight:700;color:var(--text);line-height:1.2}
+.day-btn.active .db-date{color:#fff}
+.db-dow{font-size:8px;font-weight:600;color:var(--muted);margin-top:1px;letter-spacing:.04em}
+.day-btn.active .db-dow{color:rgba(255,255,255,.7)}
+.db-nc{font-size:9px;font-weight:800;margin-top:5px;padding:1px 5px;border-radius:8px;display:inline-block}
+.nc-red{background:var(--red-lt);color:#991b1b}.nc-amber{background:var(--amber-lt);color:#92400e}.nc-green{background:var(--green-lt);color:#166534}
+.db-rf{font-size:8px;font-weight:700;color:var(--purple);margin-top:3px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.panel{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.chart-wrap{position:relative;height:190px}
+.badge-row{display:flex;gap:6px;flex-wrap:wrap;padding:9px 16px;border-top:1px solid var(--border);background:#fafbfc}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:700}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.b-c{background:var(--green-lt);color:#166534}.d-c{background:var(--green)}
+.b-o{background:var(--amber-lt);color:#92400e}.d-o{background:var(--amber)}
+.b-a{background:var(--red-lt);color:#991b1b}.d-a{background:var(--red)}
+.b-rf{background:var(--purple-lt);color:var(--purple)}.d-rf{background:var(--purple)}
+.q-table{width:100%;border-collapse:collapse;font-size:11px}
+.q-table thead tr{background:var(--dark)}
+.q-table thead th{padding:8px 12px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#fff;white-space:nowrap}
+.q-table thead th.r{text-align:right}
+.q-table tbody tr{border-bottom:1px solid var(--border)}
+.q-table tbody tr:last-child{border-bottom:none}
+.q-table tbody tr:hover{background:#f0f8f9}
+.q-table tbody td{padding:8px 12px;color:var(--text);font-weight:500;vertical-align:middle}
+.q-table tbody td.r{text-align:right}
+.q-table tbody td.rf-cell{color:var(--purple);font-weight:700}
+.nc-pill{display:inline-flex;align-items:center;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700}
+.pill-red{background:var(--red-lt);color:#991b1b}.pill-amber{background:var(--amber-lt);color:#92400e}.pill-green{background:var(--green-lt);color:#166534}
+.bar-wrap{width:60px;height:5px;background:var(--border);border-radius:99px;overflow:hidden;display:inline-block;margin-right:5px;vertical-align:middle}
+.bar-fill{height:100%;border-radius:99px}
+.day-note{font-size:11px;color:var(--muted);border-left:3px solid var(--gold);padding:8px 12px;background:var(--gold-lt);border-radius:0 6px 6px 0;margin-bottom:10px;font-weight:500;line-height:1.6}
+.day-note strong{color:var(--text)}
+.rf-note{font-size:11px;color:var(--purple);border-left:3px solid var(--purple);padding:8px 12px;background:var(--purple-lt);border-radius:0 6px 6px 0;margin-bottom:14px;font-weight:500;line-height:1.6}
+.rf-note strong{color:var(--purple)}
+.footer{text-align:center;font-size:10px;color:var(--muted);padding-top:20px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-top:1px solid var(--border);margin-top:8px}
+@media(max-width:700px){.two-col,.week-tabs{grid-template-columns:1fr}.summary-row{grid-template-columns:repeat(2,minmax(0,1fr))}.day-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.page,.header,.alert{padding-left:16px;padding-right:16px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div><div class="header-title">JEL Historical Call Monitor</div><div class="header-sub">Aug 2 – 29, 2026 &nbsp;·&nbsp; Jellystone Glen Ellis &nbsp;·&nbsp; One-time analysis</div></div>
+  <div class="status-pill"><span class="status-dot"></span>Historical Snapshot</div>
+</div>
+<div class="alert">⚠ &nbsp;33% overall NC rate across 28 days — crisis days (40%+ NC) on 08-02 · 08-09 · 08-10 · 08-16. 583 calls (20% of all volume) overflowed to Resort Flow — only from New Reservations and Modify/Change Reservations.</div>
+<div class="page">
+  <div class="summary-row">
+    <div class="sc"><div class="sc-label">Total calls</div><div class="sc-value teal">2,877</div><div class="sc-sub">Aug 2 – 29, 2026</div></div>
+    <div class="sc"><div class="sc-label">Completed</div><div class="sc-value green">1,914</div><div class="sc-sub">67% completion rate</div></div>
+    <div class="sc"><div class="sc-label">Not completed</div><div class="sc-value red">963</div><div class="sc-sub">33% NC rate overall</div></div>
+    <div class="sc"><div class="sc-label">Crisis days (40%+ NC)</div><div class="sc-value red">4</div><div class="sc-sub">08-02 · 08-09 · 08-10 · 08-16</div></div>
+    <div class="sc purple"><div class="sc-label">→ Resort Flow</div><div class="sc-value purple">583</div><div class="sc-sub">20% of all call volume · (248) 793-5986</div></div>
+  </div>
+  <div class="section-label">Select a week</div>
+  <div class="week-tabs" id="weekTabs"></div>
+  <div class="trend-panel">
+    <div class="panel-header">
+      <div class="panel-title"><span class="panel-dot" style="background:var(--teal)"></span>Daily NC rate — selected week</div>
+      <div class="panel-meta">click a bar to view that day</div>
+    </div>
+    <div class="panel-body"><div class="trend-wrap"><canvas id="trendChart"></canvas></div></div>
+  </div>
+  <div class="section-label">Select a day</div>
+  <div class="day-grid" id="dayGrid"></div>
+  <div id="dayDetail"></div>
+  <div class="footer">JEL Call Dashboard &nbsp;·&nbsp; Northgate Resorts &nbsp;·&nbsp; Historical data, Aug 2–29, 2026 &nbsp;·&nbsp; Times as recorded in source export</div>
+</div>
+<script>
+const HL={8:'8a',9:'9a',10:'10a',11:'11a',12:'12p',13:'1p',14:'2p',15:'3p',16:'4p',17:'5p',18:'6p',19:'7p',20:'8p'};
+const WEEKS=[[{"date":"2026-08-02","dow":"Sunday","total":114,"completed":64,"overflowed":29,"abandoned":21,"nc":50,"nc_pct":44,"hours":{"18":8,"17":11,"16":22,"15":8,"14":12,"13":7,"12":9,"11":6,"10":8,"9":23},"h_completed":{"18":7,"17":2,"16":9,"15":5,"14":10,"13":7,"12":8,"11":3,"10":3,"9":10},"h_overflowed":{"17":4,"16":7,"15":2,"14":2,"12":1,"11":2,"10":2,"9":9},"h_abandoned":{"18":1,"17":5,"16":6,"15":1,"11":1,"10":3,"9":4},"queues":[{"name":"JEL Main Office","total":49,"completed":27,"overflowed":4,"abandoned":18,"nc":22,"rf":0},{"name":"JEL Modify Change Reservations","total":39,"completed":19,"overflowed":20,"abandoned":0,"nc":20,"rf":20},{"name":"JEL New Reservations","total":18,"completed":13,"overflowed":5,"abandoned":0,"nc":5,"rf":5},{"name":"JEL Maintenance","total":6,"completed":3,"overflowed":0,"abandoned":3,"nc":3,"rf":0},{"name":"JEL Camp Store","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":25},{"date":"2026-08-03","dow":"Monday","total":129,"completed":93,"overflowed":29,"abandoned":7,"nc":36,"nc_pct":28,"hours":{"18":17,"17":10,"16":11,"15":14,"14":13,"13":15,"12":7,"11":10,"10":19,"9":13},"h_completed":{"18":13,"17":7,"16":7,"15":7,"14":12,"13":14,"12":6,"11":7,"10":12,"9":8},"h_overflowed":{"18":4,"17":2,"16":2,"15":5,"14":1,"12":1,"11":3,"10":7,"9":4},"h_abandoned":{"17":1,"16":2,"15":2,"13":1,"9":1},"queues":[{"name":"JEL Main Office","total":44,"completed":39,"overflowed":0,"abandoned":5,"nc":5,"rf":0},{"name":"JEL Modify Change Reservations","total":43,"completed":29,"overflowed":14,"abandoned":0,"nc":14,"rf":14},{"name":"JEL New Reservations","total":36,"completed":21,"overflowed":15,"abandoned":0,"nc":15,"rf":15},{"name":"JEL Maintenance","total":6,"completed":4,"overflowed":0,"abandoned":2,"nc":2,"rf":0}],"rf":29},{"date":"2026-08-04","dow":"Tuesday","total":127,"completed":88,"overflowed":30,"abandoned":9,"nc":39,"nc_pct":31,"hours":{"19":1,"18":15,"17":16,"16":6,"15":10,"14":8,"13":13,"12":6,"11":14,"10":8,"9":30},"h_completed":{"18":14,"17":13,"16":6,"15":7,"14":8,"13":11,"12":5,"11":9,"10":5,"9":10},"h_overflowed":{"19":1,"18":1,"17":2,"15":1,"13":2,"11":5,"10":2,"9":16},"h_abandoned":{"17":1,"15":2,"12":1,"10":1,"9":4},"queues":[{"name":"JEL Modify Change Reservations","total":50,"completed":35,"overflowed":15,"abandoned":0,"nc":15,"rf":15},{"name":"JEL Main Office","total":38,"completed":25,"overflowed":6,"abandoned":7,"nc":13,"rf":0},{"name":"JEL New Reservations","total":31,"completed":22,"overflowed":9,"abandoned":0,"nc":9,"rf":9},{"name":"JEL Maintenance","total":5,"completed":3,"overflowed":0,"abandoned":2,"nc":2,"rf":0},{"name":"JEL Camp Store","total":3,"completed":3,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":24},{"date":"2026-08-05","dow":"Wednesday","total":134,"completed":86,"overflowed":36,"abandoned":12,"nc":48,"nc_pct":36,"hours":{"18":10,"17":8,"16":4,"15":9,"14":20,"13":6,"12":15,"11":19,"10":23,"9":19,"8":1},"h_completed":{"18":9,"17":6,"16":3,"15":7,"14":17,"13":6,"12":6,"11":13,"10":11,"9":8},"h_overflowed":{"18":1,"17":1,"16":1,"15":2,"14":3,"12":8,"11":6,"10":7,"9":7},"h_abandoned":{"17":1,"12":1,"10":5,"9":4,"8":1},"queues":[{"name":"JEL Main Office","total":50,"completed":38,"overflowed":2,"abandoned":10,"nc":12,"rf":0},{"name":"JEL Modify Change Reservations","total":46,"completed":28,"overflowed":18,"abandoned":0,"nc":18,"rf":18},{"name":"JEL New Reservations","total":32,"completed":15,"overflowed":16,"abandoned":1,"nc":17,"rf":16},{"name":"JEL Maintenance","total":5,"completed":4,"overflowed":0,"abandoned":1,"nc":1,"rf":0},{"name":"JEL Camp Store","total":1,"completed":1,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":34},{"date":"2026-08-06","dow":"Thursday","total":130,"completed":81,"overflowed":32,"abandoned":17,"nc":49,"nc_pct":38,"hours":{"19":2,"18":10,"17":5,"16":11,"15":14,"14":8,"13":12,"12":18,"11":11,"10":10,"9":29},"h_completed":{"19":1,"18":10,"17":2,"16":7,"15":8,"14":7,"13":11,"12":14,"11":5,"10":8,"9":8},"h_overflowed":{"17":3,"16":4,"15":3,"14":1,"13":1,"12":4,"11":5,"10":1,"9":10},"h_abandoned":{"19":1,"15":3,"11":1,"10":1,"9":11},"queues":[{"name":"JEL Main Office","total":55,"completed":39,"overflowed":1,"abandoned":15,"nc":16,"rf":0},{"name":"JEL Modify Change Reservations","total":49,"completed":28,"overflowed":21,"abandoned":0,"nc":21,"rf":21},{"name":"JEL New Reservations","total":24,"completed":14,"overflowed":10,"abandoned":0,"nc":10,"rf":10},{"name":"JEL Camp Store","total":1,"completed":0,"overflowed":0,"abandoned":1,"nc":1,"rf":0},{"name":"JEL Maintenance","total":1,"completed":0,"overflowed":0,"abandoned":1,"nc":1,"rf":0}],"rf":31},{"date":"2026-08-07","dow":"Friday","total":139,"completed":104,"overflowed":24,"abandoned":11,"nc":35,"nc_pct":25,"hours":{"20":3,"19":10,"18":15,"17":6,"16":19,"15":7,"14":12,"13":14,"12":9,"11":13,"10":15,"9":16},"h_completed":{"20":2,"19":9,"18":9,"17":1,"16":14,"15":6,"14":9,"13":11,"12":9,"11":9,"10":13,"9":12},"h_overflowed":{"18":1,"17":3,"16":5,"15":1,"14":3,"13":3,"11":3,"10":2,"9":3},"h_abandoned":{"20":1,"19":1,"18":5,"17":2,"11":1,"9":1},"queues":[{"name":"JEL Main Office","total":66,"completed":57,"overflowed":0,"abandoned":9,"nc":9,"rf":0},{"name":"JEL New Reservations","total":33,"completed":18,"overflowed":15,"abandoned":0,"nc":15,"rf":15},{"name":"JEL Modify Change Reservations","total":26,"completed":18,"overflowed":8,"abandoned":0,"nc":8,"rf":8},{"name":"JEL Maintenance","total":8,"completed":7,"overflowed":1,"abandoned":0,"nc":1,"rf":0},{"name":"JEL Camp Store","total":6,"completed":4,"overflowed":0,"abandoned":2,"nc":2,"rf":0}],"rf":23},{"date":"2026-08-08","dow":"Saturday","total":88,"completed":73,"overflowed":12,"abandoned":3,"nc":15,"nc_pct":17,"hours":{"16":8,"15":7,"14":10,"13":9,"12":7,"11":12,"10":19,"9":16},"h_completed":{"16":6,"15":6,"14":10,"13":9,"12":6,"11":12,"10":9,"9":15},"h_overflowed":{"16":2,"15":1,"10":8,"9":1},"h_abandoned":{"12":1,"10":2},"queues":[{"name":"JEL Modify Change Reservations","total":27,"completed":22,"overflowed":5,"abandoned":0,"nc":5,"rf":5},{"name":"JEL Main Office","total":27,"completed":23,"overflowed":1,"abandoned":3,"nc":4,"rf":0},{"name":"JEL New Reservations","total":24,"completed":18,"overflowed":6,"abandoned":0,"nc":6,"rf":6},{"name":"JEL Camp Store","total":6,"completed":6,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Maintenance","total":4,"completed":4,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":11}],[{"date":"2026-08-09","dow":"Sunday","total":196,"completed":3,"overflowed":90,"abandoned":103,"nc":193,"nc_pct":98,"hours":{"18":10,"17":19,"16":29,"15":9,"14":27,"13":15,"12":10,"11":19,"10":25,"9":33},"h_completed":{"17":2,"12":1},"h_overflowed":{"18":4,"17":2,"16":7,"15":5,"14":16,"13":10,"12":9,"11":7,"10":16,"9":14},"h_abandoned":{"18":6,"17":15,"16":22,"15":4,"14":11,"13":5,"11":12,"10":9,"9":19},"queues":[{"name":"JEL Main Office","total":93,"completed":0,"overflowed":16,"abandoned":77,"nc":93,"rf":0},{"name":"JEL Modify Change Reservations","total":42,"completed":2,"overflowed":38,"abandoned":2,"nc":40,"rf":38},{"name":"JEL New Reservations","total":33,"completed":1,"overflowed":32,"abandoned":0,"nc":32,"rf":32},{"name":"JEL Camp Store","total":14,"completed":0,"overflowed":0,"abandoned":14,"nc":14,"rf":0},{"name":"JEL Maintenance","total":14,"completed":0,"overflowed":4,"abandoned":10,"nc":14,"rf":0}],"rf":70},{"date":"2026-08-10","dow":"Monday","total":166,"completed":37,"overflowed":70,"abandoned":59,"nc":129,"nc_pct":78,"hours":{"18":8,"17":5,"16":17,"15":6,"14":16,"13":21,"12":18,"11":19,"10":30,"9":26},"h_completed":{"18":8,"17":5,"16":10,"15":6,"14":8},"h_overflowed":{"16":6,"14":3,"13":13,"12":9,"11":13,"10":14,"9":12},"h_abandoned":{"16":1,"14":5,"13":8,"12":9,"11":6,"10":16,"9":14},"queues":[{"name":"JEL Main Office","total":77,"completed":16,"overflowed":10,"abandoned":51,"nc":61,"rf":0},{"name":"JEL Modify Change Reservations","total":52,"completed":12,"overflowed":39,"abandoned":1,"nc":40,"rf":39},{"name":"JEL New Reservations","total":28,"completed":8,"overflowed":19,"abandoned":1,"nc":20,"rf":20},{"name":"JEL Maintenance","total":5,"completed":1,"overflowed":2,"abandoned":2,"nc":4,"rf":0},{"name":"JEL Camp Store","total":4,"completed":0,"overflowed":0,"abandoned":4,"nc":4,"rf":0}],"rf":59},{"date":"2026-08-11","dow":"Tuesday","total":128,"completed":107,"overflowed":21,"abandoned":0,"nc":21,"nc_pct":16,"hours":{"18":5,"17":9,"16":21,"15":13,"14":6,"13":8,"12":10,"11":11,"10":19,"9":26},"h_completed":{"18":5,"17":9,"16":16,"15":13,"14":6,"13":8,"12":8,"11":10,"10":16,"9":16},"h_overflowed":{"16":5,"12":2,"11":1,"10":3,"9":10},"h_abandoned":{},"queues":[{"name":"JEL Modify Change Reservations","total":45,"completed":32,"overflowed":13,"abandoned":0,"nc":13,"rf":13},{"name":"JEL Main Office","total":41,"completed":41,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL New Reservations","total":37,"completed":29,"overflowed":8,"abandoned":0,"nc":8,"rf":8},{"name":"JEL Camp Store","total":3,"completed":3,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Maintenance","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":21},{"date":"2026-08-12","dow":"Wednesday","total":111,"completed":84,"overflowed":23,"abandoned":4,"nc":27,"nc_pct":24,"hours":{"19":2,"18":9,"17":5,"16":5,"15":9,"14":4,"13":9,"12":14,"11":18,"10":17,"9":19},"h_completed":{"18":9,"17":5,"16":4,"15":7,"14":3,"13":7,"12":11,"11":13,"10":12,"9":13},"h_overflowed":{"19":1,"16":1,"15":2,"14":1,"13":2,"12":3,"11":3,"10":4,"9":6},"h_abandoned":{"19":1,"11":2,"10":1},"queues":[{"name":"JEL Modify Change Reservations","total":61,"completed":45,"overflowed":16,"abandoned":0,"nc":16,"rf":16},{"name":"JEL New Reservations","total":29,"completed":20,"overflowed":7,"abandoned":2,"nc":9,"rf":7},{"name":"JEL Main Office","total":20,"completed":18,"overflowed":0,"abandoned":2,"nc":2,"rf":0},{"name":"JEL Camp Store","total":1,"completed":1,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":23},{"date":"2026-08-13","dow":"Thursday","total":116,"completed":103,"overflowed":11,"abandoned":2,"nc":13,"nc_pct":11,"hours":{"19":5,"18":5,"17":5,"16":12,"15":9,"14":10,"13":6,"12":12,"11":14,"10":22,"9":15,"8":1},"h_completed":{"19":5,"18":5,"17":5,"16":11,"15":9,"14":10,"13":6,"12":11,"11":12,"10":15,"9":14},"h_overflowed":{"16":1,"12":1,"11":2,"10":5,"9":1,"8":1},"h_abandoned":{"10":2},"queues":[{"name":"JEL Modify Change Reservations","total":52,"completed":44,"overflowed":7,"abandoned":1,"nc":8,"rf":7},{"name":"JEL Main Office","total":37,"completed":35,"overflowed":1,"abandoned":1,"nc":2,"rf":0},{"name":"JEL New Reservations","total":24,"completed":21,"overflowed":3,"abandoned":0,"nc":3,"rf":3},{"name":"JEL Camp Store","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Maintenance","total":1,"completed":1,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":10},{"date":"2026-08-14","dow":"Friday","total":157,"completed":118,"overflowed":34,"abandoned":5,"nc":39,"nc_pct":25,"hours":{"19":3,"18":13,"17":12,"16":10,"15":16,"14":11,"13":14,"12":13,"11":21,"10":11,"9":33},"h_completed":{"19":3,"18":11,"17":12,"16":6,"15":13,"14":10,"13":12,"12":13,"11":12,"10":9,"9":17},"h_overflowed":{"18":1,"16":3,"15":3,"14":1,"13":2,"11":9,"10":2,"9":13},"h_abandoned":{"18":1,"16":1,"9":3},"queues":[{"name":"JEL Modify Change Reservations","total":65,"completed":41,"overflowed":24,"abandoned":0,"nc":24,"rf":24},{"name":"JEL Main Office","total":55,"completed":50,"overflowed":0,"abandoned":5,"nc":5,"rf":0},{"name":"JEL New Reservations","total":31,"completed":21,"overflowed":10,"abandoned":0,"nc":10,"rf":10},{"name":"JEL Camp Store","total":4,"completed":4,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Maintenance","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":34},{"date":"2026-08-15","dow":"Saturday","total":69,"completed":59,"overflowed":5,"abandoned":5,"nc":10,"nc_pct":14,"hours":{"16":7,"15":7,"14":4,"13":4,"12":9,"11":11,"10":13,"9":14},"h_completed":{"16":5,"15":7,"14":4,"13":4,"12":8,"11":10,"10":10,"9":11},"h_overflowed":{"11":1,"10":2,"9":2},"h_abandoned":{"16":2,"12":1,"10":1,"9":1},"queues":[{"name":"JEL New Reservations","total":23,"completed":20,"overflowed":2,"abandoned":1,"nc":3,"rf":2},{"name":"JEL Modify Change Reservations","total":20,"completed":17,"overflowed":3,"abandoned":0,"nc":3,"rf":3},{"name":"JEL Main Office","total":17,"completed":15,"overflowed":0,"abandoned":2,"nc":2,"rf":0},{"name":"JEL Camp Store","total":7,"completed":5,"overflowed":0,"abandoned":2,"nc":2,"rf":0},{"name":"JEL Maintenance","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":5}],[{"date":"2026-08-16","dow":"Sunday","total":132,"completed":75,"overflowed":41,"abandoned":16,"nc":57,"nc_pct":43,"hours":{"18":13,"17":13,"16":10,"15":4,"14":5,"13":14,"12":16,"11":20,"10":19,"9":18},"h_completed":{"18":12,"17":6,"16":4,"15":4,"14":3,"13":9,"12":8,"11":10,"10":6,"9":13},"h_overflowed":{"18":1,"17":5,"16":4,"14":1,"13":4,"12":6,"11":8,"10":7,"9":5},"h_abandoned":{"17":2,"16":2,"14":1,"13":1,"12":2,"11":2,"10":6},"queues":[{"name":"JEL Main Office","total":60,"completed":43,"overflowed":3,"abandoned":14,"nc":17,"rf":0},{"name":"JEL Modify Change Reservations","total":46,"completed":23,"overflowed":22,"abandoned":1,"nc":23,"rf":23},{"name":"JEL New Reservations","total":20,"completed":4,"overflowed":16,"abandoned":0,"nc":16,"rf":16},{"name":"JEL Camp Store","total":3,"completed":2,"overflowed":0,"abandoned":1,"nc":1,"rf":0},{"name":"JEL Maintenance","total":3,"completed":3,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":39},{"date":"2026-08-17","dow":"Monday","total":128,"completed":94,"overflowed":27,"abandoned":7,"nc":34,"nc_pct":27,"hours":{"18":7,"17":16,"16":10,"15":7,"14":14,"13":17,"12":5,"11":18,"10":21,"9":13},"h_completed":{"18":6,"17":15,"16":4,"15":6,"14":11,"13":14,"12":4,"11":11,"10":16,"9":7},"h_overflowed":{"18":1,"17":1,"16":4,"15":1,"14":1,"13":2,"12":1,"11":7,"10":4,"9":5},"h_abandoned":{"16":2,"14":2,"13":1,"10":1,"9":1},"queues":[{"name":"JEL Main Office","total":57,"completed":48,"overflowed":2,"abandoned":7,"nc":9,"rf":0},{"name":"JEL Modify Change Reservations","total":49,"completed":28,"overflowed":21,"abandoned":0,"nc":21,"rf":21},{"name":"JEL New Reservations","total":16,"completed":12,"overflowed":4,"abandoned":0,"nc":4,"rf":4},{"name":"JEL Maintenance","total":5,"completed":5,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Camp Store","total":1,"completed":1,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":25},{"date":"2026-08-18","dow":"Tuesday","total":109,"completed":83,"overflowed":21,"abandoned":5,"nc":26,"nc_pct":24,"hours":{"18":12,"17":5,"16":7,"15":10,"14":9,"13":6,"12":13,"11":12,"10":17,"9":18},"h_completed":{"18":12,"17":5,"16":7,"15":8,"14":9,"13":5,"12":8,"11":8,"10":12,"9":9},"h_overflowed":{"15":2,"13":1,"12":5,"11":4,"10":5,"9":4},"h_abandoned":{"9":5},"queues":[{"name":"JEL Main Office","total":46,"completed":42,"overflowed":2,"abandoned":2,"nc":4,"rf":0},{"name":"JEL Modify Change Reservations","total":31,"completed":20,"overflowed":11,"abandoned":0,"nc":11,"rf":11},{"name":"JEL New Reservations","total":26,"completed":17,"overflowed":8,"abandoned":1,"nc":9,"rf":8},{"name":"JEL Camp Store","total":3,"completed":2,"overflowed":0,"abandoned":1,"nc":1,"rf":0},{"name":"JEL Maintenance","total":3,"completed":2,"overflowed":0,"abandoned":1,"nc":1,"rf":0}],"rf":19},{"date":"2026-08-19","dow":"Wednesday","total":69,"completed":58,"overflowed":7,"abandoned":4,"nc":11,"nc_pct":16,"hours":{"18":7,"17":7,"16":5,"15":5,"14":2,"13":9,"12":7,"11":8,"10":8,"9":11},"h_completed":{"18":6,"17":7,"16":4,"15":5,"14":2,"13":7,"12":6,"11":8,"10":7,"9":6},"h_overflowed":{"18":1,"13":2,"12":1,"9":3},"h_abandoned":{"16":1,"10":1,"9":2},"queues":[{"name":"JEL Main Office","total":33,"completed":29,"overflowed":0,"abandoned":4,"nc":4,"rf":0},{"name":"JEL Modify Change Reservations","total":17,"completed":13,"overflowed":4,"abandoned":0,"nc":4,"rf":4},{"name":"JEL New Reservations","total":15,"completed":12,"overflowed":3,"abandoned":0,"nc":3,"rf":4},{"name":"JEL Camp Store","total":3,"completed":3,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Maintenance","total":1,"completed":1,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":8},{"date":"2026-08-20","dow":"Thursday","total":117,"completed":79,"overflowed":31,"abandoned":7,"nc":38,"nc_pct":32,"hours":{"19":5,"18":15,"17":10,"16":11,"15":11,"14":6,"13":8,"12":9,"11":7,"10":16,"9":19},"h_completed":{"19":3,"18":4,"17":6,"16":10,"15":4,"14":4,"13":6,"12":8,"11":7,"10":13,"9":14},"h_overflowed":{"19":2,"18":7,"17":3,"16":1,"15":6,"14":1,"13":2,"12":1,"10":3,"9":5},"h_abandoned":{"18":4,"17":1,"15":1,"14":1},"queues":[{"name":"JEL Main Office","total":47,"completed":40,"overflowed":2,"abandoned":5,"nc":7,"rf":0},{"name":"JEL Modify Change Reservations","total":38,"completed":21,"overflowed":16,"abandoned":1,"nc":17,"rf":16},{"name":"JEL New Reservations","total":25,"completed":13,"overflowed":12,"abandoned":0,"nc":12,"rf":12},{"name":"JEL Camp Store","total":4,"completed":2,"overflowed":1,"abandoned":1,"nc":2,"rf":0},{"name":"JEL Maintenance","total":3,"completed":3,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":28},{"date":"2026-08-21","dow":"Friday","total":92,"completed":75,"overflowed":10,"abandoned":7,"nc":17,"nc_pct":18,"hours":{"20":2,"19":9,"18":7,"17":6,"16":7,"15":8,"14":7,"13":7,"12":11,"11":8,"10":6,"9":14},"h_completed":{"20":2,"19":7,"18":4,"17":5,"16":4,"15":7,"14":6,"13":7,"12":11,"11":7,"10":5,"9":10},"h_overflowed":{"19":1,"18":1,"16":2,"14":1,"10":1,"9":4},"h_abandoned":{"19":1,"18":2,"17":1,"16":1,"15":1,"11":1},"queues":[{"name":"JEL Main Office","total":40,"completed":34,"overflowed":0,"abandoned":6,"nc":6,"rf":0},{"name":"JEL Modify Change Reservations","total":22,"completed":20,"overflowed":2,"abandoned":0,"nc":2,"rf":2},{"name":"JEL New Reservations","total":22,"completed":15,"overflowed":7,"abandoned":0,"nc":7,"rf":7},{"name":"JEL Maintenance","total":5,"completed":5,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Camp Store","total":3,"completed":1,"overflowed":1,"abandoned":1,"nc":2,"rf":0}],"rf":9},{"date":"2026-08-22","dow":"Saturday","total":38,"completed":33,"overflowed":4,"abandoned":1,"nc":5,"nc_pct":13,"hours":{"16":2,"15":2,"14":9,"13":3,"12":2,"11":5,"10":6,"9":9},"h_completed":{"16":2,"15":2,"14":8,"13":3,"12":2,"11":5,"10":5,"9":6},"h_overflowed":{"14":1,"10":1,"9":2},"h_abandoned":{"9":1},"queues":[{"name":"JEL Main Office","total":13,"completed":12,"overflowed":1,"abandoned":0,"nc":1,"rf":0},{"name":"JEL Modify Change Reservations","total":11,"completed":9,"overflowed":2,"abandoned":0,"nc":2,"rf":2},{"name":"JEL New Reservations","total":8,"completed":7,"overflowed":1,"abandoned":0,"nc":1,"rf":1},{"name":"JEL Camp Store","total":4,"completed":3,"overflowed":0,"abandoned":1,"nc":1,"rf":0},{"name":"JEL Maintenance","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":3}],[{"date":"2026-08-23","dow":"Sunday","total":67,"completed":49,"overflowed":13,"abandoned":5,"nc":18,"nc_pct":27,"hours":{"18":4,"17":5,"16":5,"15":7,"14":1,"13":12,"12":6,"11":15,"10":7,"9":5},"h_completed":{"18":3,"17":3,"16":5,"15":4,"14":1,"13":10,"12":5,"11":10,"10":5,"9":3},"h_overflowed":{"18":1,"17":1,"15":1,"13":2,"12":1,"11":5,"9":2},"h_abandoned":{"17":1,"15":2,"10":2},"queues":[{"name":"JEL Main Office","total":29,"completed":24,"overflowed":0,"abandoned":5,"nc":5,"rf":0},{"name":"JEL New Reservations","total":20,"completed":10,"overflowed":10,"abandoned":0,"nc":10,"rf":10},{"name":"JEL Modify Change Reservations","total":16,"completed":13,"overflowed":3,"abandoned":0,"nc":3,"rf":3},{"name":"JEL Maintenance","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":13},{"date":"2026-08-24","dow":"Monday","total":59,"completed":48,"overflowed":9,"abandoned":2,"nc":11,"nc_pct":19,"hours":{"18":4,"17":7,"16":7,"15":5,"14":3,"13":5,"12":5,"11":2,"10":6,"9":15},"h_completed":{"18":4,"17":5,"16":7,"15":4,"14":2,"13":5,"12":4,"11":2,"10":5,"9":10},"h_overflowed":{"17":2,"14":1,"12":1,"9":5},"h_abandoned":{"15":1,"10":1},"queues":[{"name":"JEL Modify Change Reservations","total":25,"completed":19,"overflowed":6,"abandoned":0,"nc":6,"rf":6},{"name":"JEL Main Office","total":18,"completed":16,"overflowed":0,"abandoned":2,"nc":2,"rf":0},{"name":"JEL New Reservations","total":9,"completed":6,"overflowed":3,"abandoned":0,"nc":3,"rf":3},{"name":"JEL Maintenance","total":4,"completed":4,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Camp Store","total":3,"completed":3,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":9},{"date":"2026-08-25","dow":"Tuesday","total":64,"completed":47,"overflowed":14,"abandoned":3,"nc":17,"nc_pct":27,"hours":{"18":1,"17":7,"16":6,"15":6,"14":9,"13":4,"12":9,"11":4,"10":6,"9":12},"h_completed":{"18":1,"17":5,"16":5,"15":6,"14":7,"13":4,"12":7,"11":4,"10":5,"9":3},"h_overflowed":{"17":2,"16":1,"14":2,"12":1,"10":1,"9":7},"h_abandoned":{"12":1,"9":2},"queues":[{"name":"JEL Modify Change Reservations","total":27,"completed":16,"overflowed":11,"abandoned":0,"nc":11,"rf":11},{"name":"JEL Main Office","total":20,"completed":16,"overflowed":1,"abandoned":3,"nc":4,"rf":0},{"name":"JEL New Reservations","total":15,"completed":13,"overflowed":2,"abandoned":0,"nc":2,"rf":2},{"name":"JEL Maintenance","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":13},{"date":"2026-08-26","dow":"Wednesday","total":71,"completed":62,"overflowed":8,"abandoned":1,"nc":9,"nc_pct":13,"hours":{"18":2,"17":5,"16":11,"15":5,"14":6,"13":7,"12":5,"11":11,"10":7,"9":12},"h_completed":{"18":2,"17":5,"16":8,"15":4,"14":6,"13":6,"12":5,"11":8,"10":7,"9":11},"h_overflowed":{"16":3,"15":1,"13":1,"11":2,"9":1},"h_abandoned":{"11":1},"queues":[{"name":"JEL Modify Change Reservations","total":32,"completed":25,"overflowed":7,"abandoned":0,"nc":7,"rf":7},{"name":"JEL Main Office","total":25,"completed":24,"overflowed":0,"abandoned":1,"nc":1,"rf":0},{"name":"JEL New Reservations","total":12,"completed":11,"overflowed":1,"abandoned":0,"nc":1,"rf":1},{"name":"JEL Maintenance","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":8},{"date":"2026-08-27","dow":"Thursday","total":57,"completed":47,"overflowed":7,"abandoned":3,"nc":10,"nc_pct":18,"hours":{"19":2,"18":3,"17":1,"16":5,"15":7,"14":4,"13":6,"12":4,"11":3,"10":11,"9":11},"h_completed":{"19":1,"18":3,"17":1,"16":5,"15":7,"14":4,"13":6,"12":4,"11":2,"10":9,"9":5},"h_overflowed":{"19":1,"10":2,"9":4},"h_abandoned":{"11":1,"9":2},"queues":[{"name":"JEL Modify Change Reservations","total":28,"completed":22,"overflowed":5,"abandoned":1,"nc":6,"rf":5},{"name":"JEL Main Office","total":14,"completed":12,"overflowed":0,"abandoned":2,"nc":2,"rf":0},{"name":"JEL New Reservations","total":12,"completed":11,"overflowed":1,"abandoned":0,"nc":1,"rf":1},{"name":"JEL Camp Store","total":3,"completed":2,"overflowed":1,"abandoned":0,"nc":1,"rf":0}],"rf":6},{"date":"2026-08-28","dow":"Friday","total":55,"completed":49,"overflowed":5,"abandoned":1,"nc":6,"nc_pct":11,"hours":{"20":1,"19":5,"18":2,"17":4,"16":4,"15":1,"14":9,"13":6,"12":5,"11":9,"10":5,"9":4},"h_completed":{"19":4,"18":2,"17":4,"16":4,"15":1,"14":8,"13":6,"12":4,"11":8,"10":5,"9":3},"h_overflowed":{"19":1,"14":1,"12":1,"11":1,"9":1},"h_abandoned":{"20":1},"queues":[{"name":"JEL Main Office","total":21,"completed":20,"overflowed":0,"abandoned":1,"nc":1,"rf":0},{"name":"JEL Modify Change Reservations","total":20,"completed":17,"overflowed":3,"abandoned":0,"nc":3,"rf":3},{"name":"JEL New Reservations","total":13,"completed":12,"overflowed":1,"abandoned":0,"nc":1,"rf":1},{"name":"JEL Camp Store","total":1,"completed":0,"overflowed":1,"abandoned":0,"nc":1,"rf":0}],"rf":4},{"date":"2026-08-29","dow":"Saturday","total":15,"completed":15,"overflowed":0,"abandoned":0,"nc":0,"nc_pct":0,"hours":{"16":4,"15":1,"12":1,"11":2,"10":1,"9":6},"h_completed":{"16":4,"15":1,"12":1,"11":2,"10":1,"9":6},"h_overflowed":{},"h_abandoned":{},"queues":[{"name":"JEL Main Office","total":9,"completed":9,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL Modify Change Reservations","total":4,"completed":4,"overflowed":0,"abandoned":0,"nc":0,"rf":0},{"name":"JEL New Reservations","total":2,"completed":2,"overflowed":0,"abandoned":0,"nc":0,"rf":0}],"rf":0}]];
+const WEEK_META=[{"label":"08-02 \u2013 08-08","days":7,"total":861,"completed":589,"overflowed":192,"abandoned":80,"nc":272,"nc_pct":32,"rf":177},{"label":"08-09 \u2013 08-15","days":7,"total":943,"completed":511,"overflowed":254,"abandoned":178,"nc":432,"nc_pct":46,"rf":222},{"label":"08-16 \u2013 08-22","days":7,"total":685,"completed":497,"overflowed":141,"abandoned":47,"nc":188,"nc_pct":27,"rf":131},{"label":"08-23 \u2013 08-29","days":7,"total":388,"completed":317,"overflowed":56,"abandoned":15,"nc":71,"nc_pct":18,"rf":53}];
+let activeWeek=0,activeDay=0,tChart=null,hChart=null,ncChart=null;
+
+function ncClass(r){return r>=40?'nc-red':r>=20?'nc-amber':'nc-green'}
+function pillClass(r){return r>=40?'pill-red':r>=20?'pill-amber':'pill-green'}
+function barColor(r){return r>=40?'#c0392b':r>=20?'#f59e0b':'#16a34a'}
+function chipClass(r){return r>=40?'chip-red':r>=20?'chip-amber':'chip-green'}
+
+function buildWeekTabs(){
+  const el=document.getElementById('weekTabs');
+  el.innerHTML='';
+  WEEK_META.forEach((m,i)=>{
+    const t=document.createElement('div');
+    t.className='week-tab'+(i===activeWeek?' active':'');
+    t.innerHTML='<div class="wt-label">Week '+(i+1)+'</div>'+
+      '<div class="wt-dates">'+m.label+'</div>'+
+      '<div class="wt-stats">'+
+        '<span class="wt-chip chip-teal">'+m.total+' calls</span>'+
+        '<span class="wt-chip '+chipClass(m.nc_pct)+'">'+m.nc_pct+'% NC</span>'+
+        '<span class="wt-chip chip-purple">'+m.rf+' → RF</span>'+
+      '</div>';
+    t.onclick=()=>switchWeek(i);
+    el.appendChild(t);
+  });
+}
+
+function buildTrend(){
+  const week=WEEKS[activeWeek];
+  const labels=week.map(d=>d.date.slice(5)+' '+d.dow.slice(0,3));
+  const rates=week.map(d=>d.nc_pct);
+  const colors=rates.map(r=>r>=40?'#c0392b':r>=20?'#f59e0b':'#22c55e');
+  if(tChart)tChart.destroy();
+  tChart=new Chart(document.getElementById('trendChart'),{type:'bar',
+    data:{labels,datasets:[{data:rates,backgroundColor:colors,borderRadius:4,borderWidth:0,borderColor:'transparent'}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        title:i=>{const d=week[i[0].dataIndex];return d.dow+' '+d.date;},
+        label:i=>'NC: '+i.raw+'% ('+week[i.dataIndex].nc+' of '+week[i.dataIndex].total+' calls) · '+week[i.dataIndex].rf+' → Resort Flow'
+      }}},
+      onClick:(_,els)=>{if(els.length)switchDay(els[0].index);},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:9,family:'Montserrat',weight:'600'},color:'#6b7f86'}},
+        y:{max:100,grid:{color:'rgba(0,39,45,.05)'},ticks:{font:{size:9,family:'Montserrat',weight:'600'},color:'#6b7f86',callback:v=>v+'%'}}
+      }
+    }
+  });
+}
+
+function buildDayGrid(){
+  const week=WEEKS[activeWeek];
+  const grid=document.getElementById('dayGrid');
+  grid.innerHTML='';
+  const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const startDow=DOW.indexOf(week[0].dow);
+  for(let i=0;i<startDow;i++){
+    const e=document.createElement('div');e.className='day-btn empty';grid.appendChild(e);
+  }
+  week.forEach((d,i)=>{
+    const btn=document.createElement('div');
+    btn.className='day-btn'+(i===activeDay?' active':'');
+    btn.innerHTML='<div class="db-date">'+d.date.slice(5)+'</div>'+
+      '<div class="db-dow">'+d.dow.slice(0,3).toUpperCase()+'</div>'+
+      '<div class="db-nc '+ncClass(d.nc_pct)+'">'+d.nc_pct+'%</div>'+
+      '<div class="db-rf">'+d.rf+' RF</div>';
+    btn.onclick=()=>switchDay(i);
+    grid.appendChild(btn);
+  });
+  const endDow=DOW.indexOf(week[week.length-1].dow);
+  for(let i=endDow+1;i<7;i++){
+    const e=document.createElement('div');e.className='day-btn empty';grid.appendChild(e);
+  }
+}
+
+function buildDay(){
+  const d=WEEKS[activeWeek][activeDay];
+  if(!d){document.getElementById('dayDetail').innerHTML='';return;}
+  const hours=Object.keys(d.hours).map(Number).filter(h=>d.hours[h]>0).sort((a,b)=>a-b);
+  const pct=v=>d.total?Math.round(v/d.total*100):0;
+  const wh=Object.entries(d.hours).sort((a,b)=>b[1]-a[1])[0];
+  const whNC=(d.h_overflowed[wh[0]]||0)+(d.h_abandoned[wh[0]]||0);
+  const wq=d.queues[0];
+  const tone=d.nc_pct>=50?'🔴 <strong>Critical</strong>':d.nc_pct>=30?'🟠 <strong>Elevated</strong>':'🟢 <strong>Acceptable</strong>';
+  const note=tone+' — '+d.nc_pct+'% NC rate. Busiest hour: '+(HL[wh[0]]||wh[0])+' ('+wh[1]+' calls, '+whNC+' not completed). Top queue: '+wq.name.replace('JEL ','')+' — '+wq.nc+' NC of '+wq.total+' calls ('+Math.round(wq.nc/wq.total*100)+'% NC).';
+  const rfQueues=d.queues.filter(q=>q.rf>0).sort((a,b)=>b.rf-a.rf);
+  const rfNote = d.rf>0
+    ? '📞 <strong>'+d.rf+' call'+(d.rf===1?'':'s')+'</strong> overflowed to Resort Flow (248) 793-5986 today'+(rfQueues.length?' — mostly from '+rfQueues.map(q=>q.name.replace('JEL ','')+' ('+q.rf+')').join(', '):'')+'.'
+    : 'No calls overflowed to Resort Flow (248) 793-5986 today.';
+  let qrows='';
+  d.queues.forEach(q=>{
+    const r=q.total?Math.round(q.nc/q.total*100):0;
+    qrows+='<tr><td><strong>'+q.name.replace('JEL ','')+'</strong></td><td class="r">'+q.total+'</td><td class="r">'+q.completed+'</td><td class="r">'+q.overflowed+'</td><td class="r">'+q.abandoned+'</td><td class="r rf-cell">'+(q.rf>0?q.rf:'—')+'</td><td><span class="bar-wrap"><span class="bar-fill" style="width:'+Math.min(r,100)+'%;background:'+barColor(r)+'"></span></span><span class="nc-pill '+pillClass(r)+'">'+r+'%</span></td></tr>';
+  });
+  document.getElementById('dayDetail').innerHTML=
+    '<div class="day-note">'+note+'</div>'+
+    '<div class="rf-note">'+rfNote+'</div>'+
+    '<div class="two-col">'+
+      '<div class="panel"><div class="panel-header"><div class="panel-title"><span class="panel-dot" style="background:var(--teal)"></span>All calls by hour</div><div class="panel-meta">'+d.total+' calls</div></div><div class="panel-body"><div class="chart-wrap"><canvas id="hChart"></canvas></div></div><div class="badge-row"><span class="badge b-c"><span class="dot d-c"></span>Completed: '+d.completed+' ('+pct(d.completed)+'%)</span><span class="badge b-o"><span class="dot d-o"></span>Overflowed: '+d.overflowed+' ('+pct(d.overflowed)+'%)</span><span class="badge b-a"><span class="dot d-a"></span>Abandoned: '+d.abandoned+' ('+pct(d.abandoned)+'%)</span></div></div>'+
+      '<div class="panel"><div class="panel-header"><div class="panel-title"><span class="panel-dot" style="background:var(--red)"></span>Not completed by hour</div><div class="panel-meta">'+d.nc+' calls · '+d.nc_pct+'% NC</div></div><div class="panel-body"><div class="chart-wrap"><canvas id="ncChart"></canvas></div></div><div class="badge-row"><span class="badge b-o"><span class="dot d-o"></span>Overflowed: '+d.overflowed+'</span><span class="badge b-a"><span class="dot d-a"></span>Abandoned: '+d.abandoned+'</span><span class="badge b-rf"><span class="dot d-rf"></span>→ Resort Flow: '+d.rf+'</span></div></div>'+
+    '</div>'+
+    '<div class="panel" style="margin-bottom:0"><div class="panel-header"><div class="panel-title"><span class="panel-dot" style="background:var(--gold)"></span>Queue breakdown</div><div class="panel-meta">'+d.queues.length+' queues</div></div><table class="q-table"><thead><tr><th>Queue</th><th class="r">Total</th><th class="r">Completed</th><th class="r">Overflowed</th><th class="r">Abandoned</th><th class="r">→ Resort Flow</th><th>NC Rate</th></tr></thead><tbody>'+qrows+'</tbody></table></div>';
+
+  if(hChart)hChart.destroy();
+  if(ncChart)ncChart.destroy();
+  const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9,family:'Montserrat'},boxWidth:10,padding:8}}},scales:{x:{grid:{display:false},ticks:{font:{size:9,family:'Montserrat',weight:'600'},color:'#6b7f86'},stacked:true},y:{grid:{color:'rgba(0,39,45,.05)'},ticks:{font:{size:9,family:'Montserrat',weight:'600'},color:'#6b7f86'},stacked:true}}};
+  hChart=new Chart(document.getElementById('hChart'),{type:'bar',data:{labels:hours.map(h=>HL[h]||h),datasets:[{label:'Completed',data:hours.map(h=>d.h_completed[h]||0),backgroundColor:'#16a34a',borderRadius:3,stack:'s'},{label:'Overflowed',data:hours.map(h=>d.h_overflowed[h]||0),backgroundColor:'#f59e0b',stack:'s'},{label:'Abandoned',data:hours.map(h=>d.h_abandoned[h]||0),backgroundColor:'#c0392b',stack:'s'}]},options:base});
+  ncChart=new Chart(document.getElementById('ncChart'),{type:'bar',data:{labels:hours.map(h=>HL[h]||h),datasets:[{label:'Overflowed',data:hours.map(h=>d.h_overflowed[h]||0),backgroundColor:'#f59e0b',borderRadius:3,stack:'s'},{label:'Abandoned',data:hours.map(h=>d.h_abandoned[h]||0),backgroundColor:'#c0392b',stack:'s'}]},options:base});
+  if(tChart){tChart.data.datasets[0].borderWidth=WEEKS[activeWeek].map((_,i)=>i===activeDay?3:0);tChart.data.datasets[0].borderColor=WEEKS[activeWeek].map((_,i)=>i===activeDay?'#fff':'transparent');tChart.update('none');}
+}
+
+function switchDay(i){
+  activeDay=i;
+  document.querySelectorAll('.day-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  buildDay();
+  document.getElementById('dayDetail').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function switchWeek(i){
+  activeWeek=i;activeDay=0;
+  document.querySelectorAll('.week-tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  buildTrend();buildDayGrid();buildDay();
+}
+
+buildWeekTabs();buildTrend();buildDayGrid();buildDay();
+</script>
+</body>
+</html>
